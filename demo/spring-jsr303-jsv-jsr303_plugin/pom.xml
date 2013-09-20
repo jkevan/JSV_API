@@ -68,9 +68,10 @@
 			<version>4.3.0.Final</version>
 		</dependency>
 
+		<!-- jsv jsr303 plugin -->
 		<dependency>
-			<groupId>fr.ippon.blog</groupId>
-			<artifactId>jsv-JSR303-plugin</artifactId>
+			<groupId>fr.ippon.jsv.plugin</groupId>
+			<artifactId>jsr303</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 
