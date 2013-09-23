@@ -256,36 +256,36 @@ JSValidator.Form.prototype = {
 
 		fields.forEach(function (field) {
 			field.bindValidationToEvent("submit");
-		}),
+		});
 
-			JSValidator.Utils._bindEvent(instance.formElement, "submit", function (event) {
+		JSValidator.Utils._bindEvent(instance.formElement, "submit", function (event) {
 
-				// Do preValidation
-				instance._doAction(event, null, "preSubmitValidationProcess");
+			// Do preValidation
+			instance._doAction(event, null, "preSubmitValidationProcess");
 
-				var validate = true;
-				instance.getFields().forEach(function (field) {
-					field._doValidateField(event, field, function (ruleViolation) {
-						var ruleViolationsByField = [];
+			var validate = true;
+			instance.getFields().forEach(function (field) {
+				field._doValidateField(event, field, function (ruleViolation) {
+					var ruleViolationsByField = [];
 
-						if (ruleViolation.length > 0) {
-							validate = false;
-							ruleViolationsByField.push({
-								field: field.name,
-								ruleViolations: ruleViolation
-							})
-						}
+					if (ruleViolation.length > 0) {
+						validate = false;
+						ruleViolationsByField.push({
+							field: field.name,
+							ruleViolations: ruleViolation
+						})
+					}
 
-						// Do postValidation
-						instance._doAction(event, ruleViolationsByField, "postSubmitValidationProcess");
+					// Do postValidation
+					instance._doAction(event, ruleViolationsByField, "postSubmitValidationProcess");
 
-						// if errors don't send the form
-						if (ruleViolationsByField.length > 0) {
-							event.preventDefault();
-						}
-					});
+					// if errors don't send the form
+					if (ruleViolationsByField.length > 0) {
+						event.preventDefault();
+					}
 				});
-			}, false);
+			});
+		}, false);
 
 		return instance.actions;
 	},
