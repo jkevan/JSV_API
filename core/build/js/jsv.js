@@ -1,5 +1,6 @@
+// Define a "push" method for array if not exist
+// Based on code from http://prototype.conio.net/
 if (!Array.prototype.push) {
-	// Based on code from http://prototype.conio.net/
 	Array.prototype.push = function () {
 		var startLength = this.length;
 		for (var i = 0; i < arguments.length; i++) {
@@ -8,8 +9,9 @@ if (!Array.prototype.push) {
 		return this.length;
 	}
 }
+// Define a "apply" method for prototype if not exist
+// Based on code from http://prototype.conio.net/
 if (!Function.prototype.apply) {
-	// Based on code from http://prototype.conio.net/
 	Function.prototype.apply = function (object, parameters) {
 		var parameterStrings = [];
 		if (!object) {
@@ -27,8 +29,18 @@ if (!Function.prototype.apply) {
 		return result;
 	}
 }
-/* AJAX Util */
+
+/**
+ * Utils for make ajax request easily with native JavaScript Code
+ * @namespace
+ */
 var ajax = {};
+
+/**
+ * Use the right AJAX object type depending on the browser
+ * @function
+ * @private
+ */
 ajax.x = function () {
 	try {
 		return new ActiveXObject('Msxml2.XMLHTTP');
@@ -41,6 +53,16 @@ ajax.x = function () {
 	}
 };
 
+/**
+ *
+ * @param {string} url URL to send the request
+ * @param {function} callback Callback to process onSuccess
+ * @param {string} method POST/GET
+ * @param {JSON} data Data to send
+ * @param {boolean} sync
+ * @function
+ * @private
+ */
 ajax.send = function (url, callback, method, data, sync) {
 	var x = ajax.x();
 	x.open(method, url, sync);
@@ -55,6 +77,14 @@ ajax.send = function (url, callback, method, data, sync) {
 	x.send(data);
 };
 
+/**
+ * Ajax GET method, all the parameters in data are add to the URL query string.
+ * @param {String} url URL to send the request
+ * @param {JSON} data Data to send
+ * @param {function} callback Callback to process onSuccess
+ * @param {boolean} sync
+ * @function
+ */
 ajax.get = function (url, data, callback, sync) {
 	var query = [];
 	for (var key in data) {
@@ -63,6 +93,14 @@ ajax.get = function (url, data, callback, sync) {
 	ajax.send(url + '?' + query.join('&'), callback, 'GET', null, sync);
 };
 
+/**
+ * Ajax POST method, all the parameters in data are send in the request
+ * @param {String} url URL to send the request
+ * @param {JSON} data Data to send
+ * @param {function} callback Callback to process onSuccess
+ * @param {boolean} sync
+ * @function
+ */
 ajax.post = function (url, data, callback, sync) {
 	var query = [];
 	for (var key in data) {
@@ -71,24 +109,39 @@ ajax.post = function (url, data, callback, sync) {
 	ajax.send(url, callback, 'POST', query.join('&'), sync);
 };
 
+/**
+ * @class
+ * @param {string} name The form id in the page
+ * @param {string} formObjectName the full qualified object name on server side, mandatory for AJAX validation
+ * @param {JSValidator.Rule[]} rules The JSON rule array
+ * @param {JSON} config The Extra config for override default config
+ * @property {JSValidator.Form} form The binding form
+ **/
 
-
-/*
- * Core validation object.
- */
 var JSValidator = function (name, formObjectName, rules, config) {
 	this.name = name;
 	this.objectName = formObjectName;
 	this.config = config;
 	this.rules = rules;
-	this.form = this._findForm(name);
+	this.form = this._findForm(name);	//Attach form to the validator
 };
 
+/**
+ * Default conf for the validator
+ * @static
+ * @type {Object}
+ */
 JSValidator.defaultConf = {
-	errorLocalMessageTemplate: "<span class='{{class}}'>{{message}}</span>",
-	errorGlobalMessageTemplate: "<span class='{{class}}'>{{message}}</span>",
-	ajaxValidateFieldURL: 0,
+	errorLocalMessageTemplate: "<span class='{{class}}'>{{message}}</span>", // template for field message, {{class}} and {{message}} are mandatory
+	errorGlobalMessageTemplate: "<span class='{{class}}'>{{message}}</span>", // template for global messages, {{class}} and {{message}} are mandatory
+	ajaxValidateFieldURL: 0, // URI of the ajax validate service
 	ajaxValidateFieldParams: function (objectName, fieldName, fieldvalue, constaints) {
+		/*
+		 * this method is the default builder for the parameters sent to the AJAX validate field service.
+		 * key: represent the key of the parameter
+		 * value: represent his value
+		 * you can override this method to your needs, add params, remove params
+		 */
 		return {
 			objectName: objectName,
 			fieldName: fieldName,
@@ -98,8 +151,21 @@ JSValidator.defaultConf = {
 	}
 };
 
-/* Utils */
+/**
+ * Validator utils methods, for realise commons tasks
+ * @static
+ * @class
+ * @private
+ */
 JSValidator.Utils = {
+	/**
+	 * Method used for bind event to a specific element
+	 * @param {Element} element HTML element
+	 * @param {String} type Event type (change/keypress/keydown/...)
+	 * @param {function} fn Callback function
+	 * @param {boolean} propagation
+	 * @private
+	 */
 	_bindEvent: function (element, type, fn, propagation) {
 		if (element.addEventListener) {
 			element.addEventListener(type, fn, propagation);
@@ -108,17 +174,31 @@ JSValidator.Utils = {
 		}
 	},
 
+	/**
+	 * Method use for bind all the field elements of a validator Field to a specific element
+	 * @param {JSValidator.Field} field
+	 * @param {String} type Event type (change/keypress/keydown/...)
+	 * @param {function} callback
+	 * @param {boolean} propagation
+	 * @private
+	 */
 	_bindFieldToEvent: function (field, type, callback, propagation) {
+		// create a proxy callback for encapsulate the event object
 		var fn = function (event) {
 			callback(event, field);
 		};
 		for (var i = 0; i < field.fieldElements.length; i++) {
 			var fieldElement = field.fieldElements[i];
 			this._bindEvent(fieldElement, type, fn, propagation);
-
 		}
 	},
 
+	/**
+	 * method return only rules that need to be validated in AJAX
+	 * @param {JSValidator.Rule[]} rules
+	 * @returns {JSValidator.Rule[]}
+	 * @private
+	 */
 	_getAjaxableInRules: function (rules) {
 		var ajaxables = [];
 		rules.forEach(function (rule) {
@@ -129,6 +209,12 @@ JSValidator.Utils = {
 		return ajaxables;
 	},
 
+	/**
+	 * method return only rules that need to be validated client side
+	 * @param {JSValidator.Rule[]} rules
+	 * @returns {JSValidator.Rule[]}
+	 * @private
+	 */
 	_getDefaultInRules: function (rules) {
 		var defaults = [];
 		rules.forEach(function (rule) {
@@ -139,6 +225,14 @@ JSValidator.Utils = {
 		return defaults;
 	},
 
+	/**
+	 * method for build an error line
+	 * @param {JSValidator.Field} field
+	 * @param ruleViolation
+	 * @param global
+	 * @returns {String}
+	 * @private
+	 */
 	_buildErrorLine: function (field, ruleViolation, global) {
 		if (!ruleViolation.params.message) {
 			return "";
@@ -151,19 +245,26 @@ JSValidator.Utils = {
 		return error;
 	},
 
+	//
+	/**
+	 * Build the class name replaced in error messages for a specific JSValidator.Field and constraint name
+	 * @param {JSValidator.Field} field
+	 * @param {String} constraint
+	 * @returns {string}
+	 * @private
+	 */
 	_buildErrorClassName: function (field, constraint) {
 		return field.name + "_" + constraint + "_error"
-	},
-
-	_buildRuleViolation: function (rule) {
-		return {
-			constraint: rule.validationFunction,
-			params: JSON.parse(JSON.stringify(rule.params))
-		};
 	}
 };
 
+// Validator API
 JSValidator.prototype = {
+	/**
+	 * Method for find and bind the form to the current validator instance
+	 * @param {String} name Form id in the page
+	 * @returns {JSValidator.Form}
+	 */
 	_findForm: function (name) {
 		var element = document.getElementById(name);
 		if (!element || element.tagName.toLowerCase() != 'form') {
@@ -182,18 +283,23 @@ JSValidator.prototype = {
 		return new JSValidator.Form(element, this);
 	},
 
+	// getter for the form
 	getForm: function () {
 		return this.form;
 	},
 
+	// getter for a JSValidator.Field
+	// fieldName = name of the JSValidator.Field you want
 	getFieldWithName: function (fieldName) {
 		return this.form.getFieldWithName(fieldName);
 	},
 
+	// getter for all the form JSValidator.Field
 	getFields: function () {
 		return this.form.getFields();
 	},
 
+	// get a prop from it's propName, check first in custom config before check in default conf
 	_getProp: function (propName) {
 		if (this.config && this.config[propName]) {
 			return this.config[propName];
@@ -454,7 +560,7 @@ JSValidator.Field.prototype = {
 
 			if (!defaultRule.validate(this)) {
 				console.log('Failed');
-				ruleViolations.push(JSValidator.Utils._buildRuleViolation(defaultRule));
+				ruleViolations.push(new JSValidator.RuleViolation(defaultRule));
 			} else {
 				console.log('Passed');
 			}
@@ -704,6 +810,12 @@ JSValidator.Rule = function (field, validationFunction, params) {
 	this.params = params;
 	this.validationFunction = validationFunction;
 }
+
+JSValidator.RuleViolation = function(rule){
+	this.constraint = rule.validationFunction;
+	this.params = JSON.parse(JSON.stringify(rule.params));
+}
+
 JSValidator.Rule.prototype = {
 	validate: function (validator) {
 		var f = this[this.validationFunction];
