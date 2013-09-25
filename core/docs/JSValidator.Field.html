@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: ajax</title>
+    <title>JSDoc: Class: Field</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Namespace: ajax</h1>
+    <h1 class="page-title">Class: Field</h1>
     
     
 
@@ -27,7 +27,9 @@
     
 <header>
     <h2>
-    ajax
+        <span class="ancestors"><a href="JSValidator.html">JSValidator</a>.</span>
+    
+    Field
     </h2>
     
 </header>  
@@ -38,76 +40,13 @@
     
     
         
-            <div class="description">Utils for make ajax request easily with native JavaScript Code</div>
-        
-        
-        
-<dl class="details">
-    
-        
-    
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsv.js.html">jsv.js</a>, <a href="jsv.js.html#line37">line 37</a>
-    </li></ul></dd>
-    
-    
-    
-    
-    
-    
-    
-</dl>
-
-        
-        
-    
-    </div>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        <h3 class="subsection-title">Methods</h3>
-        
-        <dl>
-            
 <dt>
-    <h4 class="name" id="get"><span class="type-signature">&lt;static> </span>get<span class="signature">(url, data, callback, sync)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Field"><span class="type-signature"></span>new Field<span class="signature">(fieldElements, validator)</span><span class="type-signature"></span></h4>
     
     
 </dt>
 <dd>
     
-    
-    <div class="description">
-        Ajax GET method, all the parameters in data are add to the URL query string.
-    </div>
     
 
     
@@ -140,7 +79,79 @@
 	
         <tr>
             
-                <td class="name"><code>url</code></td>
+                <td class="name"><code>fieldElements</code></td>
+            
+            
+            <td class="type">
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">All the html fields elements that match the current Field name</td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>validator</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="JSValidator.html">JSValidator</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">The current validator</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+        <h5 class="subsection-title">Properties:</h5>
+        
+        <dl>
+
+<table class="props">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>name</code></td>
             
             
             <td class="type">
@@ -156,20 +167,20 @@
             
             
             
-            <td class="description last">URL to send the request</td>
+            <td class="description last">Field html name</td>
         </tr>
 	
 	
 	
         <tr>
             
-                <td class="name"><code>data</code></td>
+                <td class="name"><code>tagName</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">JSON</span>
+<span class="param-type">String</span>
 
 
             
@@ -179,20 +190,20 @@
             
             
             
-            <td class="description last">Data to send</td>
+            <td class="description last">Field html tag name</td>
         </tr>
 	
 	
 	
         <tr>
             
-                <td class="name"><code>callback</code></td>
+                <td class="name"><code>type</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type">String</span>
 
 
             
@@ -202,20 +213,20 @@
             
             
             
-            <td class="description last">Callback to process onSuccess</td>
+            <td class="description last">Field html type</td>
         </tr>
 	
 	
 	
         <tr>
             
-                <td class="name"><code>sync</code></td>
+                <td class="name"><code>fieldElements</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">boolean</span>
+<span class="param-type">Array</span>
 
 
             
@@ -225,16 +236,13 @@
             
             
             
-            <td class="description last"></td>
+            <td class="description last">all the html fields fot the current field name</td>
         </tr>
 	
 	
 	</tbody>
-</table>
-    
-    
-    
-<dl class="details">
+</table></dl>
+        
     
         
     
@@ -256,7 +264,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsv.js.html">jsv.js</a>, <a href="jsv.js.html#line88">line 88</a>
+        <a href="jsv.js.html">jsv.js</a>, <a href="jsv.js.html#line546">line 546</a>
     </li></ul></dd>
     
     
@@ -281,10 +289,35 @@
     
 </dd>
 
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+        <h3 class="subsection-title">Classes</h3>
         
+        <dl>
+            <dt><a href="JSValidator.Field.Actions.html">Actions</a></dt>
+            <dd></dd>
+        </dl>
+    
+    
+    
+    
+    
+    
+    
+        <h3 class="subsection-title">Methods</h3>
+        
+        <dl>
             
 <dt>
-    <h4 class="name" id="post"><span class="type-signature">&lt;static> </span>post<span class="signature">(url, data, callback, sync)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="bindValidationToEvent"><span class="type-signature"></span>bindValidationToEvent<span class="signature">(type)</span><span class="type-signature"> &rarr; {<a href="JSValidator.Field.Actions.html">JSValidator.Field.Actions</a>}</span></h4>
     
     
 </dt>
@@ -292,7 +325,7 @@
     
     
     <div class="description">
-        Ajax POST method, all the parameters in data are send in the request
+        Field API: Bind the current field validation to an event
     </div>
     
 
@@ -326,7 +359,7 @@
 	
         <tr>
             
-                <td class="name"><code>url</code></td>
+                <td class="name"><code>type</code></td>
             
             
             <td class="type">
@@ -342,76 +375,7 @@
             
             
             
-            <td class="description last">URL to send the request</td>
-        </tr>
-	
-	
-	
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-            
-            <td class="type">
-            
-                
-<span class="param-type">JSON</span>
-
-
-            
-            </td>
-            
-            
-            
-            
-            
-            <td class="description last">Data to send</td>
-        </tr>
-	
-	
-	
-        <tr>
-            
-                <td class="name"><code>callback</code></td>
-            
-            
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-            
-            
-            
-            
-            
-            <td class="description last">Callback to process onSuccess</td>
-        </tr>
-	
-	
-	
-        <tr>
-            
-                <td class="name"><code>sync</code></td>
-            
-            
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-            
-            
-            
-            
-            
-            <td class="description last"></td>
+            <td class="description last">Event type (keypress, keyup, change, etc.)</td>
         </tr>
 	
 	
@@ -442,7 +406,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsv.js.html">jsv.js</a>, <a href="jsv.js.html#line104">line 104</a>
+        <a href="jsv.js.html">jsv.js</a>, <a href="jsv.js.html#line585">line 585</a>
     </li></ul></dd>
     
     
@@ -463,6 +427,24 @@
     
     
     
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="JSValidator.Field.Actions.html">JSValidator.Field.Actions</a></span>
+
+
+	</dd>
+</dl>
+
+        
     
     
 </dd>
