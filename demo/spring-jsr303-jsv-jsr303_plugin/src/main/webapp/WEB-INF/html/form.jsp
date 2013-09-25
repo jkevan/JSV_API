@@ -77,7 +77,8 @@
 			};
 			data[fieldName] = fieldvalue;
 			return data;
-		}
+		},
+		debug:true
 	}
 </JSV:validator>
 <script type="text/javascript">

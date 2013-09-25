@@ -148,7 +148,8 @@ JSValidator.defaultConf = {
 			fieldValue: fieldvalue,
 			constraints: constaints
 		}
-	}
+	},
+	debug: false
 };
 
 /**
@@ -260,6 +261,17 @@ JSValidator.Utils = {
 
 // Validator API
 JSValidator.prototype = {
+
+	/**
+	 * Logger for JSValidator, log only if prop debug is set at TRUE
+	 * @param {String} msg Message
+	 */
+	log:function(msg){
+		if(this._getProp("debug")){
+			console.log(msg);
+		}
+	},
+
 	/**
 	 * Method for find and bind the form to the current validator instance
 	 * @param {String} name Form id in the page
@@ -606,7 +618,7 @@ JSValidator.Field.prototype = {
 		var instance = this;
 		try {
 			if (instance._getActionsForEvent(event).conditions.length > 0) {
-				console.log("Execute validation conditions");
+				instance.validator.log("Execute validation conditions");
 				instance._getActionsForEvent(event).conditions.forEach(function (condition) {
 					if (!condition(instance)) {
 						throw "conditionFailed";
@@ -615,7 +627,7 @@ JSValidator.Field.prototype = {
 			}
 		} catch (err) {
 			if (err == "conditionFailed") {
-				console.log("Conditions failed");
+				instance.validator.log("Conditions failed");
 				return false;
 			}
 		}
@@ -660,7 +672,7 @@ JSValidator.Field.prototype = {
 		if (rules.length > 0) {
 			instance._validateRules(rules, callback);
 		} else {
-			console.log('Unable to find validation rules for field "' + instance.name + '"');
+			instance.validator.log('Unable to find validation rules for field "' + instance.name + '"');
 		}
 	},
 
@@ -677,14 +689,14 @@ JSValidator.Field.prototype = {
 		// Validate default rules
 		var defaultRules = JSValidator.Utils._getDefaultInRules(rules);
 		defaultRules.forEach(function (defaultRule) {
-			console.log('Validating rule [' + defaultRule.constraintName + '] ' +
+			instance.validator.log('Validating rule [' + defaultRule.constraintName + '] ' +
 				'for field [' + defaultRule.field + ']');
 
 			if (!defaultRule.validate(this)) {
-				console.log('Failed');
+				instance.validator.log('Failed');
 				ruleViolations.push(new JSValidator.RuleViolation(defaultRule));
 			} else {
-				console.log('Passed');
+				instance.validator.log('Passed');
 			}
 		});
 
@@ -703,15 +715,15 @@ JSValidator.Field.prototype = {
 				, instance.getValue()
 				, constraints.join(","));
 
-			console.log('AJAX Validating rules ' +
+			instance.validator.log('AJAX Validating rules ' +
 				'for field [' + ajaxRules[0].field + ']');
 			ajax.post(ajaxServiceURL, data, function (data) {
 				if (data) {
 					ruleViolations = ruleViolations.concat(JSON.parse(data));
 					if (ruleViolations.length > 0) {
-						console.log('Failed');
+						instance.validator.log('Failed');
 					} else {
-						console.log('Passed');
+						instance.validator.log('Passed');
 					}
 				}
 
@@ -720,7 +732,7 @@ JSValidator.Field.prototype = {
 				}
 			})
 		} else if (!ajaxServiceURL && ajaxRules.length > 0) {
-			console.log('Unable to validates rules in AJAX, ' +
+			instance.validator.log('Unable to validates rules in AJAX, ' +
 				'no service URL provide in validator config');
 		} else {
 			if (validationCallBack) {
@@ -779,7 +791,8 @@ JSValidator.Field.prototype = {
 	 * @private
 	 */
 	_doValidateField: function (event, field, callback) {
-		console.log("Start validating field:" + field.name);
+		var instance = this;
+		instance.validator.log("Start validating field:" + field.name);
 
 		// Do conditions
 		if (!field._hasValidationRules() || !field._executeConditions(event)) {
@@ -1032,7 +1045,7 @@ JSValidator.Rule = function (field, constraintName, params) {
 JSValidator.RuleViolation = function(rule){
 	this.constraint = rule.constraintName;
 	this.params = JSON.parse(JSON.stringify(rule.params));
-}
+};
 
 JSValidator.Rule.prototype = {
 
@@ -1046,7 +1059,7 @@ JSValidator.Rule.prototype = {
 		if (!f || typeof f != 'function') {
 			return true;
 		}
-		return f(this.getPropertyValue(this.field), this.params, this.field, validator.config);
+		return f(this.getPropertyValue(this.field), this.params, this.field, validator);
 	},
 
 	/**
@@ -1283,15 +1296,15 @@ JSValidator.Rule.prototype = {
 	 * @param {JSON} config
 	 * @returns {boolean}
 	 */
-	Future: function (value, params, fieldName, config) {
+	Future: function (value, params, fieldName, validator) {
 		var valid = true;
 		if (value) {
-			var dateFormat = (config[fieldName] && config[fieldName].dateFormat ? config[fieldName].dateFormat : JSValidator.DateParser.defaultFormat);
+			var dateFormat = (validator.config[fieldName] && validator.config[fieldName].dateFormat ? validator.config[fieldName].dateFormat : JSValidator.DateParser.defaultFormat);
 			try {
 				var dateValue = JSValidator.DateParser.parseDate(dateFormat, value);
 				valid = dateValue && dateValue.getTime() > new Date().getTime();
 			} catch (e) {
-				console.log(e);
+				validator.log(e);
 			}
 		}
 		return valid;
@@ -1305,15 +1318,15 @@ JSValidator.Rule.prototype = {
 	 * @param {JSON} config
 	 * @returns {boolean}
 	 */
-	Past: function (value, params, fieldName, config) {
+	Past: function (value, params, fieldName, validator) {
 		var valid = true;
 		if (value) {
-			var dateFormat = (config[fieldName] && config[fieldName].dateFormat ? config[fieldName].dateFormat : JSValidator.DateParser.defaultFormat);
+			var dateFormat = (validator.config[fieldName] && validator.config[fieldName].dateFormat ? validator.config[fieldName].dateFormat : JSValidator.DateParser.defaultFormat);
 			try {
 				var dateValue = JSValidator.DateParser.parseDate(dateFormat, value);
 				valid = dateValue && dateValue.getTime() < new Date().getTime();
 			} catch (e) {
-				console.log(e);
+				validator.log(e);
 			}
 		}
 		return valid;
