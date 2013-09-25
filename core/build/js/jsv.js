@@ -465,11 +465,11 @@ JSValidator.Form.prototype = {
 		newGlobalActions[actionsFnName](fn);
 
 		fields.forEach(function (field) {
-			var globalActions = field._getActionsForEventType("all");
+			var globalActions = field._getActionsForEventType("always");
 			if (globalActions) {
 				globalActions[actionsFnName](fn);
 			} else {
-				field._addActionsToEventType("all", newGlobalActions);
+				field._addActionsToEventType("always", newGlobalActions);
 			}
 		});
 	},
@@ -760,7 +760,7 @@ JSValidator.Field.prototype = {
 	 * @private
 	 */
 	_doAction: function (event, field, ruleViolations, actionFnName) {
-		var globalAction = field._getActionsForEventType("all");
+		var globalAction = field._getActionsForEventType("always");
 
 		if (globalAction && globalAction[actionFnName]) {
 			globalAction[actionFnName](event, field, ruleViolations);
