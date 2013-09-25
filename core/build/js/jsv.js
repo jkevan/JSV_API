@@ -264,6 +264,7 @@ JSValidator.prototype = {
 	 * Method for find and bind the form to the current validator instance
 	 * @param {String} name Form id in the page
 	 * @returns {JSValidator.Form}
+	 * @private
 	 */
 	_findForm: function (name) {
 		var element = document.getElementById(name);
@@ -283,23 +284,37 @@ JSValidator.prototype = {
 		return new JSValidator.Form(element, this);
 	},
 
-	// getter for the form
+	/**
+	 * Getter for the form binded to the current validator
+	 * @returns {JSValidator.Form}
+	 */
 	getForm: function () {
 		return this.form;
 	},
 
-	// getter for a JSValidator.Field
-	// fieldName = name of the JSValidator.Field you want
+	/**
+	 * Getter for a Field with name
+	 * @param {String} fieldName
+	 * @returns {JSValidator.Field}
+	 */
 	getFieldWithName: function (fieldName) {
 		return this.form.getFieldWithName(fieldName);
 	},
 
-	// getter for all the form JSValidator.Field
+	/**
+	 * Getter for all the form Fields
+	 * @returns {JSValidator.Field[]}
+	 */
 	getFields: function () {
 		return this.form.getFields();
 	},
 
-	// get a prop from it's propName, check first in custom config before check in default conf
+	/**
+	 * Getter for a prop from it's propName,
+	 * check first in custom conf before check in default conf
+	 * @returns {Object}
+	 * @private
+	 */
 	_getProp: function (propName) {
 		if (this.config && this.config[propName]) {
 			return this.config[propName];
@@ -309,10 +324,11 @@ JSValidator.prototype = {
 	}
 };
 
-/*
- * Encapsulates a HTML form
- *
- * Based on code from http://prototype.conio.net/
+/**
+ * @class
+ * @param {HTMLFormElement} formElement The HTML form element
+ * @param {JSValidator} validator The current validator
+ * @property {JSValidator.Field[]} fields All the form Fields
  */
 JSValidator.Form = function (formElement, validator) {
 	this.formElement = formElement;
@@ -320,9 +336,20 @@ JSValidator.Form = function (formElement, validator) {
 	this.fields = this._findFields();
 };
 JSValidator.Form.prototype = {
+	/**
+	 * Get the value of a specific field
+	 * @param {String} fieldName
+	 * @returns {String|String[]}
+	 */
 	getValue: function (fieldName) {
 		return this.getFieldWithName(fieldName).getValue();
 	},
+
+	/**
+	 * Getter for a Field with name
+	 * @param {String} fieldName
+	 * @returns {JSValidator.Field}
+	 */
 	getFieldWithName: function (fieldName) {
 		var fields = this.getFields();
 		for (var i = 0; i < fields.length; i++) {
@@ -332,9 +359,20 @@ JSValidator.Form.prototype = {
 		}
 		return null;
 	},
+
+	/**
+	 * Getter for all the form Fields
+	 * @returns {JSValidator.Field[]}
+	 */
 	getFields: function () {
 		return this.fields;
 	},
+
+	/**
+	 * Find and bind fields to the current form object
+	 * @returns {JSValidator.Field[]}
+	 * @private
+	 */
 	_findFields: function () {
 		var instance = this;
 		var fields = [];
@@ -354,6 +392,10 @@ JSValidator.Form.prototype = {
 		return fields;
 	},
 
+	/**
+	 * Form API: bind validation to submit event
+	 * @returns {JSValidator.Form.Actions}
+	 */
 	bindValidationToSubmit: function () {
 		var instance = this;
 		instance.actions = new JSValidator.Form.Actions();
@@ -396,12 +438,25 @@ JSValidator.Form.prototype = {
 		return instance.actions;
 	},
 
+	/**
+	 * Proxy function for execute actions on Form API
+	 * @param {Event} event
+	 * @param {JSValidator.RuleViolation} ruleViolations
+	 * @param {Stirng} actionFnName Action function name to run
+	 * @private
+	 */
 	_doAction: function (event, ruleViolations, actionFnName) {
 		if (this.actions[actionFnName]) {
 			this.actions[actionFnName](event, ruleViolations);
 		}
 	},
 
+	/**
+	 * Method for add global actions on fields
+	 * @param {function} fn Function to add behind the action
+	 * @param {String} actionsFnName Action function name to run
+	 * @private
+	 */
 	_addGlobalProcess: function (fn, actionsFnName) {
 		var instance = this;
 		var fields = instance.getFields();
@@ -419,40 +474,74 @@ JSValidator.Form.prototype = {
 		});
 	},
 
+	/**
+	 * Form API: add global prevalidation process (on all the fields)
+	 * @param {function} fn The callback to execute behind the action
+	 * @returns {JSValidator.Form}
+	 */
 	addFieldsPreValidationProcess: function (fn) {
 		this._addGlobalProcess(fn, "addPreValidationProcess");
 		return this;
 	},
 
+	/**
+	 * Form API: add global postvalidation process before messages display (on all the fields)
+	 * @param {function} fn The callback to execute behind the action
+	 * @returns {JSValidator.Form}
+	 */
 	addFieldsPostValidationBeforeMessageProcess: function (fn) {
 		this._addGlobalProcess(fn, "addPostValidationBeforeMessageProcess");
 		return this;
 	},
 
+	/**
+	 * Form API: add global postvalidation process after messages display (on all the fields)
+	 * @param {function} fn The callback to execute behind the action
+	 * @returns {JSValidator.Form}
+	 */
 	addFieldsPostValidationAfterMessageProcess: function (fn) {
 		this._addGlobalProcess(fn, "addPostValidationAfterMessageProcess");
 		return this;
 	}
 };
 
-/* Actions for Form API */
+/**
+ * Form specific actions after the validation was binded to submit event.
+ * @class
+ */
 JSValidator.Form.Actions = function () {};
 
 JSValidator.Form.Actions.prototype = {
+	/**
+	 * Form API: Add pre validation process
+	 * This is the first end point of the validation process
+	 * @param {function} fn The callback to execute behind the action
+	 * @returns {JSValidator.Form.Actions}
+	 */
 	addPreSubmitValidationProcess: function (fn) {
 		this.preSubmitValidationProcess = fn;
 		return this;
 	},
+	/**
+	 * Form API: Add post validation process
+	 * This is the last end point of the validation process
+	 * @param {function} fn The callback to execute behind the action
+	 * @returns {JSValidator.Form.Actions}
+	 */
 	addPostSubmitValidationProcess: function (fn) {
 		this.postSubmitValidationProcess = fn;
 		return this;
 	}
 };
 
-/*
- * Encapsulates a HTML form field
- *
- * Based on code from http://prototype.conio.net/
+/**
+ * @class
+ * @param fieldElements All the html fields elements that match the current Field name
+ * @param {JSValidator} validator The current validator
+ * @property {String} name Field html name
+ * @property {String} tagName Field html tag name
+ * @property {String} type Field html type
+ * @property {Array} fieldElements all the html fields fot the current field name
  */
 JSValidator.Field = function (fieldElements, validator) {
 	this.validator = validator;
@@ -462,6 +551,7 @@ JSValidator.Field = function (fieldElements, validator) {
 	this.fieldElements = fieldElements;
 	this.actions = [];
 
+	// init fields value getters
 	if (JSValidator.Field.ValueGetters[this.tagName]) {
 		this.getValue = JSValidator.Field.ValueGetters[this.tagName];
 	} else if (this.tagName == 'input') {
@@ -487,6 +577,11 @@ JSValidator.Field = function (fieldElements, validator) {
 };
 
 JSValidator.Field.prototype = {
+	/**
+	 * Field API: Bind the current field validation to an event
+	 * @param {String} type Event type (keypress, keyup, change, etc.)
+	 * @returns {JSValidator.Field.Actions}
+	 */
 	bindValidationToEvent: function (type) {
 		var instance = this;
 		var actions = new JSValidator.Field.Actions();
@@ -501,6 +596,12 @@ JSValidator.Field.prototype = {
 		}
 	},
 
+	/**
+	 * Method for execute all conditions process bind to the event on a given event
+	 * @param {Event} event
+	 * @returns {boolean}
+	 * @private
+	 */
 	_executeConditions: function (event) {
 		var instance = this;
 		try {
@@ -521,6 +622,11 @@ JSValidator.Field.prototype = {
 		return true;
 	},
 
+	/**
+	 * Getter for all the JSValidator.Rule associate to the current Field
+	 * @returns {JSValidator.Rule[]}
+	 * @private
+	 */
 	_getFieldRules: function () {
 		var instance = this;
 		var rules = [];
@@ -534,10 +640,20 @@ JSValidator.Field.prototype = {
 		return rules;
 	},
 
+	/**
+	 * Check if the current have JSValidator.Rule
+	 * @returns {boolean}
+	 * @private
+	 */
 	_hasValidationRules: function () {
 		return this._getFieldRules().length > 0;
 	},
 
+	/**
+	 * Run the validation for all the JSValidator.Rule on the current field
+	 * @param {function} callback
+	 * @private
+	 */
 	_doValidateRules: function (callback) {
 		var instance = this;
 		var rules = this._getFieldRules();
@@ -548,6 +664,12 @@ JSValidator.Field.prototype = {
 		}
 	},
 
+	/**
+	 * Execute the validation for all the given JSValidator.Rule
+	 * @param {JSValidator.Rule[]} rules
+	 * @param {function} validationCallBack Callback to execute after the validation
+	 * @private
+	 */
 	_validateRules: function (rules, validationCallBack) {
 		var instance = this;
 		var ruleViolations = [];
@@ -607,6 +729,12 @@ JSValidator.Field.prototype = {
 		}
 	},
 
+	/**
+	 * Method for init the validation on a given field
+	 * @param {Event} event
+	 * @param {JSValidator.Field} field
+	 * @private
+	 */
 	_initFieldValidation: function (event, field) {
 		if (field._getActionsForEvent(event).validationTimeoutDelay
 			&& !isNaN(field._getActionsForEvent(event).validationTimeoutDelay)) {
@@ -623,6 +751,14 @@ JSValidator.Field.prototype = {
 		}
 	},
 
+	/**
+	 * Proxy method for execute actions allowed on Field API
+	 * @param {Event} event
+	 * @param {JSValidator.Field} field
+	 * @param {JSValidator.RuleViolation[]} ruleViolations The rule violations to send to the action callback
+	 * @param {String} actionFnName The action to run
+	 * @private
+	 */
 	_doAction: function (event, field, ruleViolations, actionFnName) {
 		var globalAction = field._getActionsForEventType("all");
 
@@ -635,6 +771,13 @@ JSValidator.Field.prototype = {
 		}
 	},
 
+	/**
+	 * Main method for run an entire Field validation
+	 * @param {Event} event
+	 * @param {JSValidator.Field} field
+	 * @param {function} callback Callback function execute at the really end of the validation process
+	 * @private
+	 */
 	_doValidateField: function (event, field, callback) {
 		console.log("Start validating field:" + field.name);
 
@@ -663,11 +806,21 @@ JSValidator.Field.prototype = {
 		});
 	},
 
+	/**
+	 * Main method for update error messages for the current field
+	 * @param {JSValidator.RuleViolation[]} ruleViolations
+	 * @private
+	 */
 	_updateErrorMessages: function (ruleViolations) {
 		this._updateLocalErrorMessages(ruleViolations);
 		this._updateGlobalErrorMessages(ruleViolations);
 	},
 
+	/**
+	 * method for update globals errors messages
+	 * @param {JSValidator.RuleViolation[]} ruleViolations
+	 * @private
+	 */
 	_updateGlobalErrorMessages: function (ruleViolations) {
 		var instance = this;
 		var errorContainer = document.getElementById(instance.validator.form.formElement.getAttribute("id")
@@ -694,6 +847,11 @@ JSValidator.Field.prototype = {
 		}
 	},
 
+	/**
+	 * method for local errors messages
+	 * @param {JSValidator.RuleViolation[]} ruleViolations
+	 * @private
+	 */
 	_updateLocalErrorMessages: function (ruleViolations) {
 		var instance = this;
 		var errorContainer = document.getElementById(instance.name + "_error");
@@ -707,22 +865,48 @@ JSValidator.Field.prototype = {
 		}
 	},
 
+	/**
+	 * set actions on the current field for a given event type
+	 * @param {String} type Event type
+	 * @param {JSValidator.Field.Actions} actions
+	 * @private
+	 */
 	_addActionsToEventType: function (type, actions) {
 		this.actions[type] = actions;
 	},
+
+	/**
+	 * get actions on the current field for a given event
+	 * @param {Event} event
+	 * @private
+	 */
 	_getActionsForEvent: function (event) {
 		return this._getActionsForEventType(event.type)
 	},
+
+	/**
+	 * get actions on the current field for a given event type
+	 * @param {String} eventType
+	 * @private
+	 */
 	_getActionsForEventType: function (eventType) {
 		return this.actions[eventType];
 	}
 };
 
-/* Actions on Field API */
+/**
+ * Field specific actions after the validation was binded to a given event.
+ * @class
+ */
 JSValidator.Field.Actions = function () {
 };
 
 JSValidator.Field.Actions.prototype = {
+	/**
+	 * Field API: Add a condition process to the validation
+	 * @param {function} condition The condition function to add (this function must return a boolean)
+	 * @returns {JSValidator.Field.Actions}
+	 */
 	addValidationCondition: function (condition) {
 		if (!this.conditions) {
 			this.conditions = [];
@@ -731,27 +915,53 @@ JSValidator.Field.Actions.prototype = {
 		return this;
 	},
 
+	/**
+	 * Field API: Add a pre validation process to the validation
+	 * @param {function} fn
+	 * @returns {JSValidator.Field.Actions}
+	 */
 	addPreValidationProcess: function (fn) {
 		this.preValidationProcess = fn;
 		return this;
 	},
 
+	/**
+	 * Field API: Add a post validation process before message was printed to the validation
+	 * @param {function} fn
+	 * @returns {JSValidator.Field.Actions}
+	 */
 	addPostValidationBeforeMessageProcess: function (fn) {
 		this.postValidationProcessBeforeMessage = fn;
 		return this;
 	},
 
+	/**
+	 * Field API: Add a post validation process after message was printed to the validation
+	 * @param {function} fn
+	 * @returns {JSValidator.Field.Actions}
+	 */
 	addPostValidationAfterMessageProcess: function (fn) {
 		this.postValidationProcessAfterMessage = fn;
 		return this;
 	},
 
+	/**
+	 * Field API: Set a delay to the validation
+	 * @param {Number} delay Delay in ms
+	 * @returns {JSValidator.Field.Actions}
+	 */
 	setValidationDelay: function (delay) {
 		this.validationTimeoutDelay = delay;
 		return this;
 	}
-}
+};
 
+/**
+ * Value getter for Fields
+ * @static
+ * @class
+ * @private
+ */
 JSValidator.Field.ValueGetters = {
 	radio: function () {
 		var value = null;
@@ -801,22 +1011,36 @@ JSValidator.Field.ValueGetters = {
 	}
 };
 
-/*
- * Represents a single JSR-303 validation constraint and the functions needed
- * to evaluate that constraint.
+/**
+ * Representation of a rule
+ * @param {String} field Field name
+ * @param {String} constraintName Constraint name, used to retrieve function to execute
+ * @param {JSON} params
+ * @class
  */
-JSValidator.Rule = function (field, validationFunction, params) {
+JSValidator.Rule = function (field, constraintName, params) {
 	this.field = field;
 	this.params = params;
-	this.constraintName = validationFunction;
-}
+	this.constraintName = constraintName;
+};
 
+/**
+ * Representation of a rule violation
+ * @param {JSValidator.Rule} rule
+ * @class
+ */
 JSValidator.RuleViolation = function(rule){
 	this.constraint = rule.constraintName;
 	this.params = JSON.parse(JSON.stringify(rule.params));
 }
 
 JSValidator.Rule.prototype = {
+
+	/**
+	 * Validate the current JSValidator.Rule
+	 * @param {JSValidator} validator
+	 * @returns {boolean}
+	 */
 	validate: function (validator) {
 		var f = this[this.constraintName];
 		if (!f || typeof f != 'function') {
@@ -824,74 +1048,73 @@ JSValidator.Rule.prototype = {
 		}
 		return f(this.getPropertyValue(this.field), this.params, this.field, validator.config);
 	},
+
+	/**
+	 * Get the rule error message
+	 * @returns {String}
+	 */
 	getErrorMessage: function () {
 		return (this.params.message || 'Invalid value for ' + this.field);
 	},
 
-// Property Accessor
-	getPropertyValue: function (propertyName, expectedType) {
+	/**
+	 * Get the field value
+	 * @param {String} propertyName Field name
+	 * @returns {String|String[]}
+	 */
+	getPropertyValue: function (propertyName) {
 		return this.form.getValue(propertyName)
 	},
 
-// Assertions
+	/**
+	 * Assert the given value has Length (throm error)
+	 * @param {String|String[]} value
+	 * @private
+	 */
 	_assertHasLength: function (value) {
 		if (!value.length) {
-			throw 'value \'' + value + '\' does not have length'
+			throw 'value \'' + value + '\' does not have length';
 		}
 	},
+
+	/**
+	 * Assert the given value has the given Length (throm error)
+	 * @param {String|String[]} value
+	 * @param {Number} length
+	 * @private
+	 */
 	_assertLength: function (value, length) {
-		this._assertHasLength(value)
+		this._assertHasLength(value);
 		if (value.length != length) {
-			throw 'value\'s length != \'' + length + '\''
+			throw 'value\'s length != \'' + length + '\'';
 		}
-	},
-	_throwError: function (msg) {
-		throw msg
 	},
 
-// Type safety checks
-
-// This function tries to convert the lhs into a type
-// that are compatible with the rhs for the various
-// JS compare operations. When there is a choice between
-// converting to a string or a number; number is always
-// favoured.
-	_makeCompatible: function (lhs, rhs) {
-		try {
-			this._forceNumber(rhs)
-			return this._forceNumber(lhs)
-		} catch (ex) {
-		}
-		var lhsType = typeof lhs
-		var rhsType = typeof rhs
-		if (lhsType == rhsType) {
-			return lhs
-		} else if (lhsType == 'number' || rhsType == 'number') {
-			return this._forceNumber(lhs)
-		} else {
-			throw 'unable to convert [' + lhs + '] and [' + rhs + '] to compatible types'
-		}
-	},
-	_forceNumber: function (value) {
-		if (typeof value != 'number') {
-			try {
-				var newValue = eval(value.toString())
-			} catch (ex) {
-			}
-			if (newValue && typeof newValue == 'number') {
-				return newValue
-			}
-			throw 'unable to convert value [' + value + '] to number'
-		}
-		return value
-	},
-	// JSR-303 validations
+	/**
+	 * Constraint: AssertFalse
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	AssertFalse: function (value, params) {
 		return (value == 'false');
 	},
+	/**
+	 * Constraint: AssertTrue
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	AssertTrue: function (value, params) {
 		return (value == 'true');
 	},
+
+	/**
+	 * Constraint: DecimalMax
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	DecimalMax: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -904,6 +1127,13 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: DecimalMin
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	DecimalMin: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -916,6 +1146,13 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Digits
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Digits: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -935,6 +1172,13 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Max
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Max: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -947,6 +1191,13 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Min
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Min: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -959,12 +1210,33 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: NotNull
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	NotNull: function (value, params) {
 		return (value && value.toString().length > 0);
 	},
+
+	/**
+	 * Constraint: Null
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Null: function (value, params) {
 		return (!value || value.toString().length == 0);
 	},
+
+	/**
+	 * Constraint: Pattern
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Pattern: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -982,6 +1254,13 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Size
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Size: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -995,6 +1274,15 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Future
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @param {String} fieldName
+	 * @param {JSON} config
+	 * @returns {boolean}
+	 */
 	Future: function (value, params, fieldName, config) {
 		var valid = true;
 		if (value) {
@@ -1008,6 +1296,15 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Past
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @param {String} fieldName
+	 * @param {JSON} config
+	 * @returns {boolean}
+	 */
 	Past: function (value, params, fieldName, config) {
 		var valid = true;
 		if (value) {
@@ -1022,9 +1319,22 @@ JSValidator.Rule.prototype = {
 		return valid;
 	},
 	// Hibernate Validator validations
+	/**
+	 * Constraint: Email
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Email: function (value, params) {
 		return (!value || value.search(JSValidator.Rule.emailPattern) > -1);
 	},
+
+	/**
+	 * Constraint: Length
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Length: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -1038,9 +1348,23 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: NotEmpty
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	NotEmpty: function (value, params) {
 		return (value && value.toString().search(/\w+/) > -1);
 	},
+
+	/**
+	 * Constraint: Range
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Range: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -1058,7 +1382,7 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	}
-}
+};
 // email validation regular expressions, from Hibernate Validator EmailValidator
 JSValidator.Rule.emailPatternAtom = '[^\x00-\x1F^\\(^\\)^\\<^\\>^\\@^\\,^\\;^\\:^\\^\"^\\.^\\[^\\]^\\s]';
 JSValidator.Rule.emailPatternDomain = JSValidator.Rule.emailPatternAtom + '+(\\.' + JSValidator.Rule.emailPatternAtom + '+)*';
@@ -1086,6 +1410,8 @@ JSValidator.Rule.emailPattern = new RegExp(
  *
  * If fewer than four numbers are used for the year then the year
  * will be set according to the browser defaults.
+ * @class
+ * @private
  */
 JSValidator.DateParser = {
 	defaultFormat: 'M/d/y',
