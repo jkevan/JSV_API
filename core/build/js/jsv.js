@@ -555,7 +555,7 @@ JSValidator.Field.prototype = {
 		// Validate default rules
 		var defaultRules = JSValidator.Utils._getDefaultInRules(rules);
 		defaultRules.forEach(function (defaultRule) {
-			console.log('Validating rule [' + defaultRule.validationFunction + '] ' +
+			console.log('Validating rule [' + defaultRule.constraintName + '] ' +
 				'for field [' + defaultRule.field + ']');
 
 			if (!defaultRule.validate(this)) {
@@ -572,7 +572,7 @@ JSValidator.Field.prototype = {
 		if (ajaxServiceURL && ajaxRules.length > 0) {
 			var constraints = [];
 			ajaxRules.forEach(function (ajaxRule) {
-				constraints.push(ajaxRule.validationFunction);
+				constraints.push(ajaxRule.constraintName);
 			});
 
 			var data = instance.validator._getProp("ajaxValidateFieldParams")(
@@ -679,7 +679,7 @@ JSValidator.Field.prototype = {
 			var fieldRules = instance._getFieldRules();
 			fieldRules.forEach(function (rule) {
 				var errorLineToDelete = newErrorContainer.getElementsByClassName(
-					JSValidator.Utils._buildErrorClassName(instance, rule.validationFunction))
+					JSValidator.Utils._buildErrorClassName(instance, rule.constraintName))
 				if (errorLineToDelete.length > 0) {
 					newErrorContainer.removeChild(errorLineToDelete[0]);
 				}
@@ -808,17 +808,17 @@ JSValidator.Field.ValueGetters = {
 JSValidator.Rule = function (field, validationFunction, params) {
 	this.field = field;
 	this.params = params;
-	this.validationFunction = validationFunction;
+	this.constraintName = validationFunction;
 }
 
 JSValidator.RuleViolation = function(rule){
-	this.constraint = rule.validationFunction;
+	this.constraint = rule.constraintName;
 	this.params = JSON.parse(JSON.stringify(rule.params));
 }
 
 JSValidator.Rule.prototype = {
 	validate: function (validator) {
-		var f = this[this.validationFunction];
+		var f = this[this.constraintName];
 		if (!f || typeof f != 'function') {
 			return true;
 		}

@@ -677,7 +677,7 @@ JSValidator.Field.prototype = {
 		// Validate default rules
 		var defaultRules = JSValidator.Utils._getDefaultInRules(rules);
 		defaultRules.forEach(function (defaultRule) {
-			console.log('Validating rule [' + defaultRule.validationFunction + '] ' +
+			console.log('Validating rule [' + defaultRule.constraintName + '] ' +
 				'for field [' + defaultRule.field + ']');
 
 			if (!defaultRule.validate(this)) {
@@ -694,7 +694,7 @@ JSValidator.Field.prototype = {
 		if (ajaxServiceURL && ajaxRules.length > 0) {
 			var constraints = [];
 			ajaxRules.forEach(function (ajaxRule) {
-				constraints.push(ajaxRule.validationFunction);
+				constraints.push(ajaxRule.constraintName);
 			});
 
 			var data = instance.validator._getProp("ajaxValidateFieldParams")(
@@ -832,7 +832,7 @@ JSValidator.Field.prototype = {
 			var fieldRules = instance._getFieldRules();
 			fieldRules.forEach(function (rule) {
 				var errorLineToDelete = newErrorContainer.getElementsByClassName(
-					JSValidator.Utils._buildErrorClassName(instance, rule.validationFunction))
+					JSValidator.Utils._buildErrorClassName(instance, rule.constraintName))
 				if (errorLineToDelete.length > 0) {
 					newErrorContainer.removeChild(errorLineToDelete[0]);
 				}
@@ -956,6 +956,12 @@ JSValidator.Field.Actions.prototype = {
 	}
 };
 
+/**
+ * Value getter for Fields
+ * @static
+ * @class
+ * @private
+ */
 JSValidator.Field.ValueGetters = {
 	radio: function () {
 		var value = null;
@@ -1005,97 +1011,110 @@ JSValidator.Field.ValueGetters = {
 	}
 };
 
-/*
- * Represents a single JSR-303 validation constraint and the functions needed
- * to evaluate that constraint.
+/**
+ * Representation of a rule
+ * @param {String} field Field name
+ * @param {String} constraintName Constraint name, used to retrieve function to execute
+ * @param {JSON} params
+ * @class
  */
-JSValidator.Rule = function (field, validationFunction, params) {
+JSValidator.Rule = function (field, constraintName, params) {
 	this.field = field;
 	this.params = params;
-	this.validationFunction = validationFunction;
-}
+	this.constraintName = constraintName;
+};
 
+/**
+ * Representation of a rule violation
+ * @param {JSValidator.Rule} rule
+ * @class
+ */
 JSValidator.RuleViolation = function(rule){
-	this.constraint = rule.validationFunction;
+	this.constraint = rule.constraintName;
 	this.params = JSON.parse(JSON.stringify(rule.params));
 }
 
 JSValidator.Rule.prototype = {
+
+	/**
+	 * Validate the current JSValidator.Rule
+	 * @param {JSValidator} validator
+	 * @returns {boolean}
+	 */
 	validate: function (validator) {
-		var f = this[this.validationFunction];
+		var f = this[this.constraintName];
 		if (!f || typeof f != 'function') {
 			return true;
 		}
 		return f(this.getPropertyValue(this.field), this.params, this.field, validator.config);
 	},
+
+	/**
+	 * Get the rule error message
+	 * @returns {String}
+	 */
 	getErrorMessage: function () {
 		return (this.params.message || 'Invalid value for ' + this.field);
 	},
 
-// Property Accessor
-	getPropertyValue: function (propertyName, expectedType) {
+	/**
+	 * Get the field value
+	 * @param {String} propertyName Field name
+	 * @returns {String|String[]}
+	 */
+	getPropertyValue: function (propertyName) {
 		return this.form.getValue(propertyName)
 	},
 
-// Assertions
+	/**
+	 * Assert the given value has Length (throm error)
+	 * @param {String|String[]} value
+	 * @private
+	 */
 	_assertHasLength: function (value) {
 		if (!value.length) {
-			throw 'value \'' + value + '\' does not have length'
+			throw 'value \'' + value + '\' does not have length';
 		}
 	},
+
+	/**
+	 * Assert the given value has the given Length (throm error)
+	 * @param {String|String[]} value
+	 * @param {Number} length
+	 * @private
+	 */
 	_assertLength: function (value, length) {
-		this._assertHasLength(value)
+		this._assertHasLength(value);
 		if (value.length != length) {
-			throw 'value\'s length != \'' + length + '\''
+			throw 'value\'s length != \'' + length + '\'';
 		}
-	},
-	_throwError: function (msg) {
-		throw msg
 	},
 
-// Type safety checks
-
-// This function tries to convert the lhs into a type
-// that are compatible with the rhs for the various
-// JS compare operations. When there is a choice between
-// converting to a string or a number; number is always
-// favoured.
-	_makeCompatible: function (lhs, rhs) {
-		try {
-			this._forceNumber(rhs)
-			return this._forceNumber(lhs)
-		} catch (ex) {
-		}
-		var lhsType = typeof lhs
-		var rhsType = typeof rhs
-		if (lhsType == rhsType) {
-			return lhs
-		} else if (lhsType == 'number' || rhsType == 'number') {
-			return this._forceNumber(lhs)
-		} else {
-			throw 'unable to convert [' + lhs + '] and [' + rhs + '] to compatible types'
-		}
-	},
-	_forceNumber: function (value) {
-		if (typeof value != 'number') {
-			try {
-				var newValue = eval(value.toString())
-			} catch (ex) {
-			}
-			if (newValue && typeof newValue == 'number') {
-				return newValue
-			}
-			throw 'unable to convert value [' + value + '] to number'
-		}
-		return value
-	},
-	// JSR-303 validations
+	/**
+	 * Constraint: AssertFalse
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	AssertFalse: function (value, params) {
 		return (value == 'false');
 	},
+	/**
+	 * Constraint: AssertTrue
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	AssertTrue: function (value, params) {
 		return (value == 'true');
 	},
+
+	/**
+	 * Constraint: DecimalMax
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	DecimalMax: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -1108,6 +1127,13 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: DecimalMin
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	DecimalMin: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -1120,6 +1146,13 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Digits
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Digits: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -1139,6 +1172,13 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Max
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Max: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -1151,6 +1191,13 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Min
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Min: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -1163,12 +1210,33 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: NotNull
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	NotNull: function (value, params) {
 		return (value && value.toString().length > 0);
 	},
+
+	/**
+	 * Constraint: Null
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Null: function (value, params) {
 		return (!value || value.toString().length == 0);
 	},
+
+	/**
+	 * Constraint: Pattern
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Pattern: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -1186,6 +1254,13 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Size
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Size: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -1199,6 +1274,15 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Future
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @param {String} fieldName
+	 * @param {JSON} config
+	 * @returns {boolean}
+	 */
 	Future: function (value, params, fieldName, config) {
 		var valid = true;
 		if (value) {
@@ -1212,6 +1296,15 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: Past
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @param {String} fieldName
+	 * @param {JSON} config
+	 * @returns {boolean}
+	 */
 	Past: function (value, params, fieldName, config) {
 		var valid = true;
 		if (value) {
@@ -1226,9 +1319,22 @@ JSValidator.Rule.prototype = {
 		return valid;
 	},
 	// Hibernate Validator validations
+	/**
+	 * Constraint: Email
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Email: function (value, params) {
 		return (!value || value.search(JSValidator.Rule.emailPattern) > -1);
 	},
+
+	/**
+	 * Constraint: Length
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Length: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -1242,9 +1348,23 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	},
+
+	/**
+	 * Constraint: NotEmpty
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	NotEmpty: function (value, params) {
 		return (value && value.toString().search(/\w+/) > -1);
 	},
+
+	/**
+	 * Constraint: Range
+	 * @param {String|String[]} value
+	 * @param {JSON} params
+	 * @returns {boolean}
+	 */
 	Range: function (value, params) {
 		var valid = true;
 		if (value) {
@@ -1262,7 +1382,7 @@ JSValidator.Rule.prototype = {
 		}
 		return valid;
 	}
-}
+};
 // email validation regular expressions, from Hibernate Validator EmailValidator
 JSValidator.Rule.emailPatternAtom = '[^\x00-\x1F^\\(^\\)^\\<^\\>^\\@^\\,^\\;^\\:^\\^\"^\\.^\\[^\\]^\\s]';
 JSValidator.Rule.emailPatternDomain = JSValidator.Rule.emailPatternAtom + '+(\\.' + JSValidator.Rule.emailPatternAtom + '+)*';
@@ -1290,6 +1410,8 @@ JSValidator.Rule.emailPattern = new RegExp(
  *
  * If fewer than four numbers are used for the year then the year
  * will be set according to the browser defaults.
+ * @class
+ * @private
  */
 JSValidator.DateParser = {
 	defaultFormat: 'M/d/y',
