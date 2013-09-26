@@ -580,7 +580,7 @@ JSValidator.Element.prototype = {
 };
 
 /**
- * Form specific actions after the validation was binded to submit event.
+ * Element specific actions after the validation was binded to a specific event.
  * @class
  */
 JSValidator.Element.ElementActions = function (element) {
@@ -1115,6 +1115,8 @@ JSValidator.Rule = function (field, constraintName, params) {
 /**
  * Representation of a rule violation
  * @param {JSValidator.Rule} rule
+ * @property {String} constraint Constraint name
+ * @property {JSON} params Constraint params (message, min, max, etc.)
  * @class
  */
 JSValidator.RuleViolation = function (rule) {
@@ -1126,6 +1128,8 @@ JSValidator.RuleViolation = function (rule) {
  * Representation of a field violation
  * @param {JSValidator.Field} field
  * @param {JSValidator.RuleViolation[]} ruleViolations
+ * @property {String} field Field name
+ * @property {JSValidator.RuleViolation[]} ruleViolations
  * @class
  */
 JSValidator.FieldViolation = function (field, ruleViolations) {
