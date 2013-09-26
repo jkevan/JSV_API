@@ -184,14 +184,18 @@ JSValidator.Utils = {
 	 * @private
 	 */
 	_bindFieldToEvent: function (field, type, callback, propagation) {
-		// create a proxy callback for encapsulate the event object
-		var fn = function (event) {
-			callback(event, field);
-		};
 		for (var i = 0; i < field.fieldElements.length; i++) {
 			var fieldElement = field.fieldElements[i];
-			this._bindEvent(fieldElement, type, fn, propagation);
+			this._bindElementToEvent(field, fieldElement, type, callback, propagation);
 		}
+	},
+
+	_bindElementToEvent: function (fields, element, type, callback, propagation) {
+		// create a proxy callback for encapsulate the event object
+		var fn = function (event) {
+			callback(event, fields);
+		};
+		this._bindEvent(element, type, fn, propagation);
 	},
 
 	/**
@@ -266,8 +270,8 @@ JSValidator.prototype = {
 	 * Logger for JSValidator, log only if prop debug is set at TRUE
 	 * @param {String} msg Message
 	 */
-	log:function(msg){
-		if(this._getProp("debug")){
+	log: function (msg) {
+		if (this._getProp("debug")) {
 			console.log(msg);
 		}
 	},
@@ -332,6 +336,23 @@ JSValidator.prototype = {
 			return this.config[propName];
 		} else {
 			return JSValidator.defaultConf[propName];
+		}
+	},
+
+
+	/**
+	 *
+	 * @param elementId
+	 * @param eventType
+	 * @param preventDefaultOnFail
+	 * @returns {*}
+	 */
+	bindValidationToElement: function (elementId, eventType, preventDefaultOnFail) {
+		var element = document.getElementById(elementId);
+		if (element) {
+			return new JSValidator.Element(element, eventType, preventDefaultOnFail, this).actions;
+		} else {
+			this.log("can't find element with Id: " + elementId);
 		}
 	}
 };
@@ -405,52 +426,6 @@ JSValidator.Form.prototype = {
 	},
 
 	/**
-	 * Form API: bind validation to submit event
-	 * @returns {JSValidator.Form.Actions}
-	 */
-	bindValidationToSubmit: function () {
-		var instance = this;
-		instance.actions = new JSValidator.Form.Actions();
-
-		var fields = instance.getFields();
-
-		fields.forEach(function (field) {
-			field.bindValidationToEvent("submit");
-		});
-
-		JSValidator.Utils._bindEvent(instance.formElement, "submit", function (event) {
-
-			// Do preValidation
-			instance._doAction(event, null, "preSubmitValidationProcess");
-
-			var validate = true;
-			instance.getFields().forEach(function (field) {
-				field._doValidateField(event, field, function (ruleViolation) {
-					var ruleViolationsByField = [];
-
-					if (ruleViolation.length > 0) {
-						validate = false;
-						ruleViolationsByField.push({
-							field: field.name,
-							ruleViolations: ruleViolation
-						})
-					}
-
-					// Do postValidation
-					instance._doAction(event, ruleViolationsByField, "postSubmitValidationProcess");
-
-					// if errors don't send the form
-					if (ruleViolationsByField.length > 0) {
-						event.preventDefault();
-					}
-				});
-			});
-		}, false);
-
-		return instance.actions;
-	},
-
-	/**
 	 * Proxy function for execute actions on Form API
 	 * @param {Event} event
 	 * @param {JSValidator.RuleViolation} ruleViolations
@@ -473,11 +448,11 @@ JSValidator.Form.prototype = {
 		var instance = this;
 		var fields = instance.getFields();
 
-		var newGlobalActions = new JSValidator.Field.Actions();
+		var newGlobalActions = new JSValidator.Field.FieldActions();
 		newGlobalActions[actionsFnName](fn);
 
 		fields.forEach(function (field) {
-			var globalActions = field._getActionsForEventType("always");
+			var globalActions = field._getActionsForActionKey("always");
 			if (globalActions) {
 				globalActions[actionsFnName](fn);
 			} else {
@@ -517,32 +492,110 @@ JSValidator.Form.prototype = {
 	}
 };
 
+
+
+JSValidator.Element = function (element, eventType, preventDefaultOnFail, validator) {
+	this.element = element;
+	this.eventType = eventType;
+	this.validator = validator;
+	this.preventDefaultOnFail = preventDefaultOnFail;
+	this.actions = new JSValidator.Element.ElementActions(this);
+};
+
+JSValidator.Element.prototype = {
+	/**
+	 *
+	 * @param {String} eventType
+	 * @param {JSValidator.Field|JSValidator.Field[]} targetField
+	 * @param {boolean} preventDefaultOnFail
+	 */
+
+	bindField: function (targetField) {
+		var instance = this;
+		var actionKey = instance.eventType + "." + instance.element.id;
+		var targetFields = targetField instanceof Array ? targetField : [targetField];
+
+		var actions = new JSValidator.Field.FieldActions();
+
+		JSValidator.Utils._bindElementToEvent(targetFields, instance.element, instance.eventType, function (event, fields) {
+			var ruleViolationsByField = [];
+			var validateFieldTemp = 0;
+
+			// Do preValidation
+			instance._doAction(event, null, "preValidationProcess");
+
+			fields.forEach(function (field) {
+				field._addActionsToEventType(actionKey, actions);
+
+				var validate = true;
+				field._doValidateField(event, field, actionKey, function (ruleViolation) {
+					validateFieldTemp++;
+
+					if (ruleViolation.length > 0) {
+						validate = false;
+						ruleViolationsByField.push({
+							field: targetField.name,
+							ruleViolations: ruleViolation
+						})
+					}
+
+					if (validateFieldTemp == targetFields.length) {
+						// Do postValidation
+						instance._doAction(event, ruleViolationsByField, "postValidationProcess");
+
+						// if errors don't send the form
+						if (ruleViolationsByField.length > 0 && instance.preventDefaultOnFail) {
+							event.preventDefault();
+						}
+					}
+				});
+			});
+		}, false);
+
+		return actions;
+	},
+
+	_doAction: function (event, ruleViolations, actionFnName) {
+		if (this.actions[actionFnName]) {
+			this.actions[actionFnName](event, ruleViolations);
+		}
+	}
+};
+
 /**
  * Form specific actions after the validation was binded to submit event.
  * @class
  */
-JSValidator.Form.Actions = function () {};
+JSValidator.Element.ElementActions = function (element) {
+	this.element = element;
+};
 
-JSValidator.Form.Actions.prototype = {
+JSValidator.Element.ElementActions.prototype = {
 	/**
 	 * Form API: Add pre validation process
 	 * This is the first end point of the validation process
 	 * @param {function} fn The callback to execute behind the action
-	 * @returns {JSValidator.Form.Actions}
+	 * @returns {JSValidator.Form.FormActions}
 	 */
-	addPreSubmitValidationProcess: function (fn) {
-		this.preSubmitValidationProcess = fn;
+	addPreValidationProcess: function (fn) {
+		this.preValidationProcess = fn;
 		return this;
 	},
+
 	/**
 	 * Form API: Add post validation process
 	 * This is the last end point of the validation process
 	 * @param {function} fn The callback to execute behind the action
-	 * @returns {JSValidator.Form.Actions}
+	 * @returns {JSValidator.Form.FormActions}
 	 */
-	addPostSubmitValidationProcess: function (fn) {
-		this.postSubmitValidationProcess = fn;
+	addPostValidationProcess: function (fn) {
+		this.postValidationProcess = fn;
 		return this;
+	},
+
+
+	bindField: function (targetField) {
+		return this.element.bindField(targetField);
 	}
 };
 
@@ -592,11 +645,11 @@ JSValidator.Field.prototype = {
 	/**
 	 * Field API: Bind the current field validation to an event
 	 * @param {String} type Event type (keypress, keyup, change, etc.)
-	 * @returns {JSValidator.Field.Actions}
+	 * @returns {JSValidator.Field.FieldActions}
 	 */
 	bindValidationToEvent: function (type) {
 		var instance = this;
-		var actions = new JSValidator.Field.Actions();
+		var actions = new JSValidator.Field.FieldActions();
 		var atype = 0;
 		type.trim().split(",").forEach(function (theType) {
 			atype = theType;
@@ -604,7 +657,7 @@ JSValidator.Field.prototype = {
 			JSValidator.Utils._bindFieldToEvent(instance, theType, instance._initFieldValidation, false);
 		});
 		if (atype) {
-			return instance._getActionsForEventType(atype);
+			return instance._getActionsForActionKey(atype);
 		}
 	},
 
@@ -754,12 +807,12 @@ JSValidator.Field.prototype = {
 			clearInterval(field._getActionsForEvent(event).validationTimeout);
 			field._getActionsForEvent(event).validationTimeout =
 				setTimeout(function () {
-						field._doValidateField(event, field);
+						field._doValidateField(event, field, event.type);
 					},
 					field._getActionsForEvent(event).validationTimeoutDelay);
 
 		} else {
-			field._doValidateField(event, field);
+			field._doValidateField(event, field, event.type);
 		}
 	},
 
@@ -771,15 +824,15 @@ JSValidator.Field.prototype = {
 	 * @param {String} actionFnName The action to run
 	 * @private
 	 */
-	_doAction: function (event, field, ruleViolations, actionFnName) {
-		var globalAction = field._getActionsForEventType("always");
+	_doAction: function (event, field, ruleViolations, actionFnName, actionsKey) {
+		var globalAction = field._getActionsForActionKey("always");
 
 		if (globalAction && globalAction[actionFnName]) {
 			globalAction[actionFnName](event, field, ruleViolations);
 		}
 
-		if (field._getActionsForEvent(event)[actionFnName]) {
-			field._getActionsForEvent(event)[actionFnName](event, field, ruleViolations);
+		if (field._getActionsForActionKey(actionsKey)[actionFnName]) {
+			field._getActionsForActionKey(actionsKey)[actionFnName](event, field, ruleViolations);
 		}
 	},
 
@@ -790,7 +843,7 @@ JSValidator.Field.prototype = {
 	 * @param {function} callback Callback function execute at the really end of the validation process
 	 * @private
 	 */
-	_doValidateField: function (event, field, callback) {
+	_doValidateField: function (event, field, actionsKey, callback) {
 		var instance = this;
 		instance.validator.log("Start validating field:" + field.name);
 
@@ -799,19 +852,19 @@ JSValidator.Field.prototype = {
 			return true;
 		}
 
-		field._doAction(event, field, null, "preValidationProcess");
+		field._doAction(event, field, null, "preValidationProcess", actionsKey);
 
 		//Do validation
 		field._doValidateRules(function (ruleViolations) {
 			// Post validation process
 			field._doAction(event, field, ruleViolations,
-				"postValidationProcessBeforeMessage");
+				"postValidationProcessBeforeMessage", actionsKey);
 
 			// Display error messages
 			field._updateErrorMessages(ruleViolations);
 
 			// Post validation process
-			field._doAction(event, field, ruleViolations, "postValidationProcessAfterMessage");
+			field._doAction(event, field, ruleViolations, "postValidationProcessAfterMessage", actionsKey);
 
 			if (callback) {
 				callback(ruleViolations);
@@ -881,7 +934,7 @@ JSValidator.Field.prototype = {
 	/**
 	 * set actions on the current field for a given event type
 	 * @param {String} type Event type
-	 * @param {JSValidator.Field.Actions} actions
+	 * @param {JSValidator.Field.FieldActions} actions
 	 * @private
 	 */
 	_addActionsToEventType: function (type, actions) {
@@ -894,7 +947,7 @@ JSValidator.Field.prototype = {
 	 * @private
 	 */
 	_getActionsForEvent: function (event) {
-		return this._getActionsForEventType(event.type)
+		return this._getActionsForActionKey(event.type)
 	},
 
 	/**
@@ -902,7 +955,7 @@ JSValidator.Field.prototype = {
 	 * @param {String} eventType
 	 * @private
 	 */
-	_getActionsForEventType: function (eventType) {
+	_getActionsForActionKey: function (eventType) {
 		return this.actions[eventType];
 	}
 };
@@ -911,14 +964,14 @@ JSValidator.Field.prototype = {
  * Field specific actions after the validation was binded to a given event.
  * @class
  */
-JSValidator.Field.Actions = function () {
+JSValidator.Field.FieldActions = function () {
 };
 
-JSValidator.Field.Actions.prototype = {
+JSValidator.Field.FieldActions.prototype = {
 	/**
 	 * Field API: Add a condition process to the validation
 	 * @param {function} condition The condition function to add (this function must return a boolean)
-	 * @returns {JSValidator.Field.Actions}
+	 * @returns {JSValidator.Field.FieldActions}
 	 */
 	addValidationCondition: function (condition) {
 		if (!this.conditions) {
@@ -931,7 +984,7 @@ JSValidator.Field.Actions.prototype = {
 	/**
 	 * Field API: Add a pre validation process to the validation
 	 * @param {function} fn
-	 * @returns {JSValidator.Field.Actions}
+	 * @returns {JSValidator.Field.FieldActions}
 	 */
 	addPreValidationProcess: function (fn) {
 		this.preValidationProcess = fn;
@@ -941,7 +994,7 @@ JSValidator.Field.Actions.prototype = {
 	/**
 	 * Field API: Add a post validation process before message was printed to the validation
 	 * @param {function} fn
-	 * @returns {JSValidator.Field.Actions}
+	 * @returns {JSValidator.Field.FieldActions}
 	 */
 	addPostValidationBeforeMessageProcess: function (fn) {
 		this.postValidationProcessBeforeMessage = fn;
@@ -951,7 +1004,7 @@ JSValidator.Field.Actions.prototype = {
 	/**
 	 * Field API: Add a post validation process after message was printed to the validation
 	 * @param {function} fn
-	 * @returns {JSValidator.Field.Actions}
+	 * @returns {JSValidator.Field.FieldActions}
 	 */
 	addPostValidationAfterMessageProcess: function (fn) {
 		this.postValidationProcessAfterMessage = fn;
@@ -961,7 +1014,7 @@ JSValidator.Field.Actions.prototype = {
 	/**
 	 * Field API: Set a delay to the validation
 	 * @param {Number} delay Delay in ms
-	 * @returns {JSValidator.Field.Actions}
+	 * @returns {JSValidator.Field.FieldActions}
 	 */
 	setValidationDelay: function (delay) {
 		this.validationTimeoutDelay = delay;
@@ -1042,7 +1095,7 @@ JSValidator.Rule = function (field, constraintName, params) {
  * @param {JSValidator.Rule} rule
  * @class
  */
-JSValidator.RuleViolation = function(rule){
+JSValidator.RuleViolation = function (rule) {
 	this.constraint = rule.constraintName;
 	this.params = JSON.parse(JSON.stringify(rule.params));
 };

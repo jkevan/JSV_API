@@ -60,6 +60,8 @@
 		<div id="promoCode_error" class="error"></div>
 	</div>
 
+	<input type="button" id="test_button" value="test button"/>
+
 	<div class="ctrl-holder">
 		<input type="submit" value="<spring:message code="send" />">
 	</div>
@@ -68,83 +70,65 @@
 <script type="text/javascript" src="js/jsv.min.js"></script>
 <JSV:validator formId="FormBean" form="${formBean}" var="formBeanValidator">
 	{
-		errorLocalMessageTemplate: "<span class='{{class}} test'>{{message}}</span>",
-		ajaxValidateFieldURL:"${validate_url2}",
-		ajaxValidateFieldParams: function(objectName, fieldName, fieldvalue, constaints){
-			var data = {
-				fieldName: fieldName,
-				constraints: constaints
-			};
-			data[fieldName] = fieldvalue;
-			return data;
-		},
-		debug:true
+	errorLocalMessageTemplate: "<span class='{{class}} test'>{{message}}</span>",
+	ajaxValidateFieldURL:"${validate_url2}",
+	ajaxValidateFieldParams: function(objectName, fieldName, fieldvalue, constaints){
+	var data = {
+	fieldName: fieldName,
+	constraints: constaints
+	};
+	data[fieldName] = fieldvalue;
+	return data;
+	},
+	debug:true
 	}
 </JSV:validator>
 <script type="text/javascript">
 	var firstNamefield = formBeanValidator.getFieldWithName("firstname");
 	var lastNamefield = formBeanValidator.getFieldWithName("lastname");
-	var languagesField = formBeanValidator.getFieldWithName("languages");
-	var ageField = formBeanValidator.getFieldWithName("age");
-	var sportsField = formBeanValidator.getFieldWithName("sports");
-	var promoCodeField = formBeanValidator.getFieldWithName("promoCode");
+	var promofield = formBeanValidator.getFieldWithName("promoCode");
+	var sportsfield = formBeanValidator.getFieldWithName("sports");
 	var form = formBeanValidator.getForm();
 
-	languagesField.bindValidationToEvent("click");
-	ageField.bindValidationToEvent("keyup");
-	sportsField.bindValidationToEvent("change");
-	promoCodeField.bindValidationToEvent("keyup").setValidationDelay("1000");
-
-	lastNamefield.bindValidationToEvent("keyup")
-			.addPreValidationProcess(function(event, field){
-				console.log("PRE VALIDATING LAST name on keyup");
+	// ELEMENT SCOPE
+	formBeanValidator.bindValidationToElement("FormBean", "submit", true)
+			.addPreValidationProcess(function () {
+				console.log("PRE VALID");
 			})
-			.addPostValidationBeforeMessageProcess(function(event, field, ruleViolations){
-				console.log("POST VALIDATING Last name on KEYUP");
-				ruleViolations.forEach(function(ruleViolation){
-					if(ruleViolation.constraint == "NotEmpty"){
-						ruleViolation.params.message += " ohohooh";
-					}
-				});
-
-				return ruleViolations;
-			});
-
-	firstNamefield.bindValidationToEvent("keyup")
-			.addPreValidationProcess(function(event, field){
-				console.log("PRE VALIDATING firstname on KEYUP");
+			.addPostValidationProcess(function () {
+				console.log("POST VALID");
 			})
-			.addPostValidationBeforeMessageProcess(function(event, field, ruleViolations){
-				console.log("POST VALIDATING firstname on KEYUP");
-				ruleViolations.forEach(function(ruleViolation){
-					if(ruleViolation.constraint == "NotEmpty"){
-						ruleViolation.params.message += " ahahaha";
-					}
-				});
-
-				return ruleViolations;
+			.bindField([firstNamefield, lastNamefield, promofield])
+			.addPreValidationProcess(function () {
+				console.log("PRE VALID SPECIFIC");
+			})
+			.addPostValidationBeforeMessageProcess(function () {
+				console.log("POST VALID SPECIFIC BEFORE");
+			})
+			.addPostValidationAfterMessageProcess(function () {
+				console.log("POST VALID SPECIFIC AFTER");
 			});
 
+	// FIELD SCOPE
+	sportsfield.bindValidationToEvent("change")
+			.addPreValidationProcess(function(){
+				console.log("PRE VALID SPECIFIC SPORTS");
+			})
+			.addPostValidationBeforeMessageProcess(function(){
+				console.log("POST VALID SPECIFIC BEFORE SPORTS")
+			})
+			.addPostValidationAfterMessageProcess(function(){
+				console.log("POST VALID SPECIFIC AFTER SPORTS")
+			})
+			.setValidationDelay(500);
 
-
-	form.addFieldsPreValidationProcess(function (event) {
-		        console.log("Pre-validation method for each form field");
-		    })
-	    .addFieldsPostValidationBeforeMessageProcess(function (event, ruleViolationsByField) {
-		        console.log("Post-validation method used to update error messages, if any");
-		    })
-	    .addFieldsPostValidationAfterMessageProcess(function (event) {
-		        console.log("Post-validation method used after messages have been displayed, if any");
-		    })
-	    .bindValidationToSubmit()
-	    .addPreSubmitValidationProcess(function (event) {
-		        console.log("Pre-validation method for 'submit' event");
-		    })
-	    .addPostSubmitValidationProcess(function (event, ruleViolationsByField) {
-		        console.log("Post-validation method for 'submit' event");
-		        ruleViolationsByField.forEach(function (ruleViolationA) {
-			            console.log("Field in error: " +  ruleViolationA.field + " with " +
-					                     ruleViolationA.ruleViolations.length + " errors");
-			        });
-			});
+	// APP SCOPE
+	formBeanValidator.getForm()
+			.addFieldsPreValidationProcess(function () {
+				console.log("PRE VALID SPECIFIC GLOBAL");
+			}).addFieldsPostValidationBeforeMessageProcess(function () {
+				console.log("POST VALID SPECIFIC BEFORE GLOBAL");
+			}).addFieldsPostValidationAfterMessageProcess(function () {
+				console.log("POST VALID SPECIFIC AFTER GLOBAL");
+			})
 </script>
