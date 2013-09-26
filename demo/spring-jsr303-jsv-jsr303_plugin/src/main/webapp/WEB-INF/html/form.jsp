@@ -92,43 +92,43 @@
 
 	// ELEMENT SCOPE
 	formBeanValidator.bindValidationToElement("FormBean", "submit", true)
-			.addPreValidationProcess(function () {
+			.addPreValidationProcess(function (event) {
 				console.log("PRE VALID");
 			})
-			.addPostValidationProcess(function () {
+			.addPostValidationProcess(function (event, fieldViolations) {
 				console.log("POST VALID");
 			})
 			.bindField([firstNamefield, lastNamefield, promofield])
-			.addPreValidationProcess(function () {
+			.addPreValidationProcess(function (event, field) {
 				console.log("PRE VALID SPECIFIC");
 			})
-			.addPostValidationBeforeMessageProcess(function () {
+			.addPostValidationBeforeMessageProcess(function (event, field, ruleViolations) {
 				console.log("POST VALID SPECIFIC BEFORE");
 			})
-			.addPostValidationAfterMessageProcess(function () {
+			.addPostValidationAfterMessageProcess(function (event, field, ruleViolations) {
 				console.log("POST VALID SPECIFIC AFTER");
 			});
 
 	// FIELD SCOPE
 	sportsfield.bindValidationToEvent("change")
-			.addPreValidationProcess(function(){
+			.addPreValidationProcess(function(event, field){
 				console.log("PRE VALID SPECIFIC SPORTS");
 			})
-			.addPostValidationBeforeMessageProcess(function(){
+			.addPostValidationBeforeMessageProcess(function(event, field, ruleViolations){
 				console.log("POST VALID SPECIFIC BEFORE SPORTS")
 			})
-			.addPostValidationAfterMessageProcess(function(){
+			.addPostValidationAfterMessageProcess(function(event, field, ruleViolations){
 				console.log("POST VALID SPECIFIC AFTER SPORTS")
 			})
 			.setValidationDelay(500);
 
 	// APP SCOPE
 	formBeanValidator.getForm()
-			.addFieldsPreValidationProcess(function () {
+			.addFieldsPreValidationProcess(function (event, field) {
 				console.log("PRE VALID SPECIFIC GLOBAL");
-			}).addFieldsPostValidationBeforeMessageProcess(function () {
+			}).addFieldsPostValidationBeforeMessageProcess(function (event, field, ruleViolations) {
 				console.log("POST VALID SPECIFIC BEFORE GLOBAL");
-			}).addFieldsPostValidationAfterMessageProcess(function () {
+			}).addFieldsPostValidationAfterMessageProcess(function (event, field, ruleViolations) {
 				console.log("POST VALID SPECIFIC AFTER GLOBAL");
 			})
 </script>

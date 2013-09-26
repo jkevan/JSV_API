@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: ajax</title>
+    <title>JSDoc: Class: ElementActions</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Namespace: ajax</h1>
+    <h1 class="page-title">Class: ElementActions</h1>
     
     
 
@@ -27,7 +27,9 @@
     
 <header>
     <h2>
-    ajax
+        <span class="ancestors"><a href="JSValidator.html">JSValidator</a><a href="JSValidator.Element.html">.Element</a>.</span>
+    
+    ElementActions
     </h2>
     
 </header>  
@@ -38,67 +40,8 @@
     
     
         
-            <div class="description">Utils for make ajax request easily with native JavaScript Code</div>
-        
-        
-        
-<dl class="details">
-    
-        
-    
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core.js.html">core.js</a>, <a href="core.js.html#line37">line 37</a>
-    </li></ul></dd>
-    
-    
-    
-    
-    
-    
-    
-</dl>
-
-        
-        
-    
-    </div>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        <h3 class="subsection-title">Methods</h3>
-        
-        <dl>
-            
 <dt>
-    <h4 class="name" id="get"><span class="type-signature">&lt;static> </span>get<span class="signature">(url, data, callback, sync)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="ElementActions"><span class="type-signature"></span>new ElementActions<span class="signature">()</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -106,7 +49,7 @@
     
     
     <div class="description">
-        Ajax GET method, all the parameters in data are add to the URL query string.
+        Element specific actions after the validation was binded to a specific event.
     </div>
     
 
@@ -114,123 +57,6 @@
     
     
     
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-		
-		<th>Type</th>
-		
-		
-		
-		
-		
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-	
-	<tbody>
-	
-	
-        <tr>
-            
-                <td class="name"><code>url</code></td>
-            
-            
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-            
-            
-            
-            
-            
-            <td class="description last">URL to send the request</td>
-        </tr>
-	
-	
-	
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-            
-            <td class="type">
-            
-                
-<span class="param-type">JSON</span>
-
-
-            
-            </td>
-            
-            
-            
-            
-            
-            <td class="description last">Data to send</td>
-        </tr>
-	
-	
-	
-        <tr>
-            
-                <td class="name"><code>callback</code></td>
-            
-            
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-            
-            
-            
-            
-            
-            <td class="description last">Callback to process onSuccess</td>
-        </tr>
-	
-	
-	
-        <tr>
-            
-                <td class="name"><code>sync</code></td>
-            
-            
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-            
-            
-            
-            
-            
-            <td class="description last"></td>
-        </tr>
-	
-	
-	</tbody>
-</table>
     
     
     
@@ -256,7 +82,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core.js.html">core.js</a>, <a href="core.js.html#line88">line 88</a>
+        <a href="core.js.html">core.js</a>, <a href="core.js.html#line586">line 586</a>
     </li></ul></dd>
     
     
@@ -281,10 +107,28 @@
     
 </dd>
 
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        <h3 class="subsection-title">Methods</h3>
         
+        <dl>
             
 <dt>
-    <h4 class="name" id="post"><span class="type-signature">&lt;static> </span>post<span class="signature">(url, data, callback, sync)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="addPostValidationProcess"><span class="type-signature"></span>addPostValidationProcess<span class="signature">(fn)</span><span class="type-signature"> &rarr; {<a href="JSValidator.Element.ElementActions.html">JSValidator.Element.ElementActions</a>}</span></h4>
     
     
 </dt>
@@ -292,7 +136,7 @@
     
     
     <div class="description">
-        Ajax POST method, all the parameters in data are send in the request
+        ELEMENT API: Add post validation processThis is the last end point of the validation process on the element event
     </div>
     
 
@@ -326,53 +170,7 @@
 	
         <tr>
             
-                <td class="name"><code>url</code></td>
-            
-            
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-            
-            
-            
-            
-            
-            <td class="description last">URL to send the request</td>
-        </tr>
-	
-	
-	
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-            
-            <td class="type">
-            
-                
-<span class="param-type">JSON</span>
-
-
-            
-            </td>
-            
-            
-            
-            
-            
-            <td class="description last">Data to send</td>
-        </tr>
-	
-	
-	
-        <tr>
-            
-                <td class="name"><code>callback</code></td>
+                <td class="name"><code>fn</code></td>
             
             
             <td class="type">
@@ -388,20 +186,270 @@
             
             
             
-            <td class="description last">Callback to process onSuccess</td>
+            <td class="description last">The callback to execute behind the action</td>
         </tr>
 	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="core.js.html">core.js</a>, <a href="core.js.html#line608">line 608</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="JSValidator.Element.ElementActions.html">JSValidator.Element.ElementActions</a></span>
+
+
+	</dd>
+</dl>
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="addPreValidationProcess"><span class="type-signature"></span>addPreValidationProcess<span class="signature">(fn)</span><span class="type-signature"> &rarr; {<a href="JSValidator.Element.ElementActions.html">JSValidator.Element.ElementActions</a>}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        ELEMENT API: Add pre validation processThis is the first end point of the validation process on the element event
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
 	
 	
         <tr>
             
-                <td class="name"><code>sync</code></td>
+                <td class="name"><code>fn</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">boolean</span>
+<span class="param-type">function</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">The callback to execute behind the action</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="core.js.html">core.js</a>, <a href="core.js.html#line597">line 597</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="JSValidator.Element.ElementActions.html">JSValidator.Element.ElementActions</a></span>
+
+
+	</dd>
+</dl>
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="bindField"><span class="type-signature"></span>bindField<span class="signature">(targetField)</span><span class="type-signature"> &rarr; {<a href="JSValidator.Field.FieldActions.html">JSValidator.Field.FieldActions</a>}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        ELEMENT API: Start point to get FIELD API from ELEMENT APIbind a group of fields to the element validation event, returning FIELD API for define specific fields actions
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>targetField</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="JSValidator.Field.html">JSValidator.Field</a></span>
+|
+
+<span class="param-type">Array.&lt;<a href="JSValidator.Field.html">JSValidator.Field</a>></span>
 
 
             
@@ -442,7 +490,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core.js.html">core.js</a>, <a href="core.js.html#line104">line 104</a>
+        <a href="core.js.html">core.js</a>, <a href="core.js.html#line619">line 619</a>
     </li></ul></dd>
     
     
@@ -463,6 +511,24 @@
     
     
     
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="JSValidator.Field.FieldActions.html">JSValidator.Field.FieldActions</a></span>
+
+
+	</dd>
+</dl>
+
+        
     
     
 </dd>

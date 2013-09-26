@@ -190,6 +190,15 @@ JSValidator.Utils = {
 		}
 	},
 
+	/**
+	 * Bind a specific event to an HTML element
+	 * @param {JSValidator.Field[]} fields
+	 * @param {HTMLElement} element
+	 * @param {String} type Event type (change/keypress/keydown/...)
+	 * @param {function} callback
+	 * @param {boolean} propagation
+	 * @private
+	 */
 	_bindElementToEvent: function (fields, element, type, callback, propagation) {
 		// create a proxy callback for encapsulate the event object
 		var fn = function (event) {
@@ -341,10 +350,10 @@ JSValidator.prototype = {
 
 
 	/**
-	 *
-	 * @param elementId
-	 * @param eventType
-	 * @param preventDefaultOnFail
+	 * SCOPE ELEMENT API: bind validation to external HTML Element
+	 * @param {String} elementId
+	 * @param {String} eventType Event type (keypress, click, submit, etc.)
+	 * @param {boolean} preventDefaultOnFail True: Cancel event there has failed rules
 	 * @returns {*}
 	 */
 	bindValidationToElement: function (elementId, eventType, preventDefaultOnFail) {
@@ -462,7 +471,7 @@ JSValidator.Form.prototype = {
 	},
 
 	/**
-	 * Form API: add global prevalidation process (on all the fields)
+	 * FORM SCOPE API: add global prevalidation process (on all the fields)
 	 * @param {function} fn The callback to execute behind the action
 	 * @returns {JSValidator.Form}
 	 */
@@ -472,7 +481,7 @@ JSValidator.Form.prototype = {
 	},
 
 	/**
-	 * Form API: add global postvalidation process before messages display (on all the fields)
+	 * FORM SCOPE API: add global postvalidation process before messages display (on all the fields)
 	 * @param {function} fn The callback to execute behind the action
 	 * @returns {JSValidator.Form}
 	 */
@@ -482,7 +491,7 @@ JSValidator.Form.prototype = {
 	},
 
 	/**
-	 * Form API: add global postvalidation process after messages display (on all the fields)
+	 * FORM SCOPE API: add global postvalidation process after messages display (on all the fields)
 	 * @param {function} fn The callback to execute behind the action
 	 * @returns {JSValidator.Form}
 	 */
@@ -492,25 +501,29 @@ JSValidator.Form.prototype = {
 	}
 };
 
-
-
-JSValidator.Element = function (element, eventType, preventDefaultOnFail, validator) {
+/**
+ *
+ * @param {HTMLElement} element
+ * @param {String} eventType Event type (keypress, submit, click, etc.)
+ * @param {boolean} preventDefaultOnFail True: cancel event if there has failed rules
+ * @class
+ */
+JSValidator.Element = function (element, eventType, preventDefaultOnFail) {
 	this.element = element;
 	this.eventType = eventType;
-	this.validator = validator;
 	this.preventDefaultOnFail = preventDefaultOnFail;
 	this.actions = new JSValidator.Element.ElementActions(this);
 };
 
 JSValidator.Element.prototype = {
-	/**
-	 *
-	 * @param {String} eventType
-	 * @param {JSValidator.Field|JSValidator.Field[]} targetField
-	 * @param {boolean} preventDefaultOnFail
-	 */
 
-	bindField: function (targetField) {
+	/**
+	 * Start point to get FIELD API from ELEMENT API
+	 * @param {JSValidator.Field|JSValidator.Field[]} targetField
+	 * @returns {JSValidator.Field.FieldActions}
+	 * @private
+	 */
+	_bindField: function (targetField) {
 		var instance = this;
 		var actionKey = instance.eventType + "." + instance.element.id;
 		var targetFields = targetField instanceof Array ? targetField : [targetField];
@@ -528,15 +541,12 @@ JSValidator.Element.prototype = {
 				field._addActionsToEventType(actionKey, actions);
 
 				var validate = true;
-				field._doValidateField(event, field, actionKey, function (ruleViolation) {
+				field._doValidateField(event, field, actionKey, function (ruleViolations) {
 					validateFieldTemp++;
 
-					if (ruleViolation.length > 0) {
+					if (ruleViolations.length > 0) {
 						validate = false;
-						ruleViolationsByField.push({
-							field: targetField.name,
-							ruleViolations: ruleViolation
-						})
+						ruleViolationsByField.push(new JSValidator.FieldViolation(field, ruleViolations))
 					}
 
 					if (validateFieldTemp == targetFields.length) {
@@ -555,6 +565,13 @@ JSValidator.Element.prototype = {
 		return actions;
 	},
 
+	/**
+	 * Proxy method for execute Element actions
+	 * @param {String} event
+	 * @param {JSValidator.RuleViolation[]} ruleViolations
+	 * @param actionFnName
+	 * @private
+	 */
 	_doAction: function (event, ruleViolations, actionFnName) {
 		if (this.actions[actionFnName]) {
 			this.actions[actionFnName](event, ruleViolations);
@@ -572,10 +589,10 @@ JSValidator.Element.ElementActions = function (element) {
 
 JSValidator.Element.ElementActions.prototype = {
 	/**
-	 * Form API: Add pre validation process
-	 * This is the first end point of the validation process
+	 * ELEMENT API: Add pre validation process
+	 * This is the first end point of the validation process on the element event
 	 * @param {function} fn The callback to execute behind the action
-	 * @returns {JSValidator.Form.FormActions}
+	 * @returns {JSValidator.Element.ElementActions}
 	 */
 	addPreValidationProcess: function (fn) {
 		this.preValidationProcess = fn;
@@ -583,19 +600,24 @@ JSValidator.Element.ElementActions.prototype = {
 	},
 
 	/**
-	 * Form API: Add post validation process
-	 * This is the last end point of the validation process
+	 * ELEMENT API: Add post validation process
+	 * This is the last end point of the validation process on the element event
 	 * @param {function} fn The callback to execute behind the action
-	 * @returns {JSValidator.Form.FormActions}
+	 * @returns {JSValidator.Element.ElementActions}
 	 */
 	addPostValidationProcess: function (fn) {
 		this.postValidationProcess = fn;
 		return this;
 	},
 
-
+	/**
+	 * ELEMENT API: Start point to get FIELD API from ELEMENT API
+	 * bind a group of fields to the element validation event, returning FIELD API for define specific fields actions
+	 * @param {JSValidator.Field|JSValidator.Field[]} targetField
+	 * @returns {JSValidator.Field.FieldActions}
+	 */
 	bindField: function (targetField) {
-		return this.element.bindField(targetField);
+		return this.element._bindField(targetField);
 	}
 };
 
@@ -1100,8 +1122,18 @@ JSValidator.RuleViolation = function (rule) {
 	this.params = JSON.parse(JSON.stringify(rule.params));
 };
 
-JSValidator.Rule.prototype = {
+/**
+ * Representation of a field violation
+ * @param {JSValidator.Field} field
+ * @param {JSValidator.RuleViolation[]} ruleViolations
+ * @class
+ */
+JSValidator.FieldViolation = function (field, ruleViolations) {
+	this.field = field.name;
+	this.ruleViolations = ruleViolations;
+};
 
+JSValidator.Rule.prototype = {
 	/**
 	 * Validate the current JSValidator.Rule
 	 * @param {JSValidator} validator
